@@ -23,7 +23,7 @@ class AuthController extends Controller
     public function _construct(){
 
         //$this->middleware('auth');
-        $this->middleware('auth:api', ['except' => ['login']]);
+        $this->middleware('auth:api', ['except' => ['login','register']]);
     } 
 
     /**
@@ -36,6 +36,10 @@ class AuthController extends Controller
 
     public function register(Request $request){
 
+        $randx =  str_shuffle('abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ');
+
+       $userID = substr($randx,0, 8);
+
         $this->validate($request, [
             'fullname' => 'required|string',
             'email' => 'required|email|unique:users',
@@ -47,6 +51,7 @@ class AuthController extends Controller
 
             $user = new User;
             $user->name = $request->input('fullname');
+            $user->user_id = $userID;
             $user->email = $request->input('email');
             $user->phone = $request->input('phone');
             $plainPassword = $request->input('password');
@@ -81,8 +86,36 @@ class AuthController extends Controller
     }
 
 
-    public function  profile(){
 
+    public function loginx(Request $request){
+
+
+        $this->validate($request, [
+            'email'   => 'required',
+            'password'=> 'required',
+        ]);
+
+        $credentials = $request->only(['email', 'password']);
+
+        if (!$token = Auth::attempt($credentials)) {
+            return response()->json(['errors' => ['result'=>'Unauthorized!!!... Authentication credential not found']], 401);
+        }
+
+        //return $token;
+
+        return $this->respondWithToken($token);
+      }
+
+
+    public function  profile(Request $request){
+
+
+  
+         //$user = JWTAuth::parseToken()->authenticate();
+
+
+         return Auth::user()->email;
+     
         // $email = Auth::user()->email;
 
         // $getDB = DB::table('users')->where('email', $email)->get();
@@ -90,19 +123,13 @@ class AuthController extends Controller
         // //return $getDB;
 
 
-        return response()->json(['user' => $this->guard()], 200);
-    }
-
-    protected function respondWithToken($token)
-    {
-        return response()->json([
-            'token' => $token,
-            'token_type' => 'bearer',
-            'user' => $this->guard()->user(),
-            'expires_in' => Auth::factory()->getTTL() * 60
-        ], 200);
+        //return response()->json(['user' => Auth::user()], 200);
     }
 
     
+
+    public function guard() {
+        return Auth::guard('api');
+    }
 
 }

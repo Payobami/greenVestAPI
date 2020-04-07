@@ -32,12 +32,12 @@ class UserController extends Controller{
 
         //$getDB = DB::table('users')->get();
 
-        //return $user = var_dump($this->guard()->user());
+        return Auth::user();
 
         //return auth()->user();
 
 
-        return "heelo";
+        //return "heelo";
     }
 
 

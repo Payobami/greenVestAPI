@@ -22,11 +22,21 @@ $router->group(['prefix' => 'api'], function () use ($router){
 
     $router->post('login', 'AuthController@login');
 
+    $router->post('loginx', 'AuthController@loginx');
+    
+    $router->post('logout', 'AuthController@logout');
+
     $router->get('profile', 'UserController@profile');
+
+    $router->post('profilex', 'AuthController@profile');
 
     $router->get('users/{id}', 'UserController@singleUser');
 
     $router->get('users', 'UserController@allUsers');
 
     $router->post('esaver', 'SavingsPlanController@eSaver');
+
+    $router->post('payment', 'SavingsPlanController@payments');
+
+
 });

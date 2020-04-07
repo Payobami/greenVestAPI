@@ -13,7 +13,15 @@ use Tymon\JWTAuth\JWTAuth;
 
 class SavingsPlanController extends Controller{
 
+    /*
+    * Initialize authentication 
+    * We espect the user to login before saving and making payment
+    
+    */
+
     public function __construct(){
+
+        //$this->middleware('auth');
 
         $this->middleware('auth:api', ['except' => ['login']]);
     }
@@ -32,12 +40,14 @@ class SavingsPlanController extends Controller{
     public function eSaver(Request $request){
 
 
+        //Please note to send token as part of the request
+
     
         // We expect the following input keys from the user
             // purpose
             //amount
             //timer
-            //end_date
+            //end_date   
 
 
         // validate request
@@ -52,21 +62,24 @@ class SavingsPlanController extends Controller{
 
         //insert this values to database table "esaver_account"
 
+
         try{
+
 
             $inputData = [
                 "purpose"=>$request->input('purpose'),
-                "user_id"=> rand(),
+                "user_id"=> Auth::user()->user_id,
                 "amount"=>$request->input('amount'),
                 "timer"=>$request->input('timer'),
                 "end_date"=>$request->input("end_date"),
                 "created_date"=> date('Y-md H:i a'),
-                "statu" => 0
+                "status" => 0
             ];
 
 
 
-            $insertDB = DB::table("esaver_account")->insert($inputData);
+        $insertDB = DB::table("esaver_account")->insert($inputData);
+            
             if($insertDB){
 
                 return response()->json(['message'=>"eSaver Account Created Successfully", "success"=>true], 200);
@@ -79,6 +92,8 @@ class SavingsPlanController extends Controller{
 
             return response()->json(['message'=>'Unable to submit', 'success'=> false], 401);
         }
+
+        
 
     }
 
@@ -94,8 +109,42 @@ class SavingsPlanController extends Controller{
     public function payments(Request $request){
 
         //get the wallet
-        //purpose
+        
+        // Please Note to pass the token as part of the post request
 
+        $this->validate($request, [
+            "amount"=>"required",
+            "purpose"=>"required",
+            "payment_date"=>"required",
+            
+        ]);
+
+        try{
+
+            //insert into table wallet
+
+            $getInputData = [
+                "user_id"=> Auth::user()->user_id,
+                "amount" => $request->input('amount'),
+                "purpose" => $request->input('purpose'),
+                "payment_date" => $request->input('payment_date'),
+                "status" => 0
+            ];
+
+            $insertDB = DB::table('wallet')->insert($getInputData);
+
+            return response()->json([
+                'success'=>true,
+                'message'=> "payment uploaded successfully"
+            ], 200);
+
+
+        }
+        catch(\Exception $e){
+
+            return response()->json(['success'=>false, 'message'=>'Error.. Payment Details not submitted']);
+
+        }
 
 
 
